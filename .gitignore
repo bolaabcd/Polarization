@@ -1,4 +1,6 @@
 results/
+ags/
+pols/
 __pycache__
 *.pyc
 .vscode/
