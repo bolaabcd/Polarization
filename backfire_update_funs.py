@@ -4,6 +4,7 @@ from functools import partial
 import numpy as np
 
 class NewUpdate(Enum):
+    LINEROTATE = "Rotate"
     INVMOD="Modulus"
     INVQUAD="Quadratic"
     CUBIC="Cubic"
@@ -16,11 +17,13 @@ class BF_Update_Functions(Update_Functions):
         if precision<=0:
             raise ValueError('Precision need to be a positive integer')
         super().__init__(precision=precision)
+        self.add_function(NewUpdate.LINEROTATE,self.neighbours_rotated_line_update)
         self.add_function(NewUpdate.INVMOD,self.inverse_modulus_update)
         self.add_function(NewUpdate.INVQUAD,self.inverse_quadratic_update)
         self.add_function(NewUpdate.CUBIC,self.cubic_backfire)
         self.add_function(NewUpdate.BFISOLATED,self.backfire_isolated)
         for i in range(-precision,precision+1):
+            self.add_function((NewUpdate.LINEROTATE,i/precision),partial(self.neighbours_rotated_line_update,rotation_alpha=i/precision))
             self.add_function((NewUpdate.INVMOD,i/precision),partial(self.inverse_modulus_update,modulus_factor=i/precision))
             self.add_function((NewUpdate.INVQUAD,i/precision),partial(self.inverse_quadratic_update,quadratic_factor=i/precision))
             self.add_function((NewUpdate.CUBIC,i/precision),partial(self.cubic_backfire,root_backfire_treshold=i/precision))
@@ -48,6 +51,23 @@ class BF_Update_Functions(Update_Functions):
         infs=sigs*inf_graph*(-np.abs(np.abs(diff)-fullMod)+fullMod)
         preAns=np.add.reduce(infs) / neighbours + beliefs
         return np.clip(preAns,0,1)
+        #rotation_alpha: kwarg
+    def neighbours_rotated_line_update(self,beliefs,inf_graph,**kwargs):
+        """Applies the rotated-line update function as matrix multiplication.
+        
+        For each agent, update their beliefs factoring the authority bias,
+        the confirmation-backfire factor and the beliefs of all the agents' neighbors.
+        """
+        rotation_alpha=-1
+        if "rotation_alpha" in kwargs:
+            rotation_alpha=kwargs["rotation_alpha"]
+        neighbours = [np.count_nonzero(inf_graph[:, i]) for i, _ in enumerate(beliefs)]
+        diff = np.ones((len(beliefs), 1)) @  np.asarray(beliefs)[np.newaxis]
+        diff = np.transpose(diff) - diff
+        infs = inf_graph * rotation_alpha * diff
+        preAns=np.add.reduce(infs) / neighbours + beliefs
+        return np.clip(preAns,0,1)
+        
     #quadratic_factor:float=2
     def inverse_quadratic_update(self,beliefs,inf_graph,**kwargs):
         """Applies the inverse-quadratic update function as matrix multiplication.
