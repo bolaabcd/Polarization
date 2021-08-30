@@ -23,19 +23,31 @@ python3 -m pip install -r requirements.txt
 ```
 
 ## Running Simulations
+If you want to try, or recreate, the simulations in `ExampleSimulations.ipynb` for yourself, download this repository, install the corresponding dependencies, and run the jupyter notebook server with access to all .py files of the project. For example, in the same folder as the .py files are located, run:
+
+```
+jupyter notebook
+```
+
+Select `ExampleSimulations.ipynb`, and make sure to set it as trusted, or just re-run the desired cells.
+
+If you want to run many of the possible simulations and save the results to PDF, do the same as above but with `ManySimlations.ipynb` (and make sure to create the 'ags' and the 'pols' folders, because the results will be placed in these folders).
 
 
+## The `BF_Update_Functions` Class
+This class contains all functions that implement the Backfire-Effect. For now you can select only values of k that were pre-created (Should be fixed in a few updates).
 
-## The `Update_Functions` Class
-
-### `BF_Update_Functions` Class
+### `Update_Functions` Class
+All update functions should extend this class. It contains the Confirmation Bias update function, the Classic update function, and methods to add and get new functions.
 
 ## The `Esteban_Ray_polarization` Class
+This class implements the Esteban-Ray polarization measure.
 
 ### `Polarization_Measure` Interface
+All polarization measure functions should extend this interface. It doesn't do anything.
 
 ## The `ManySimulations` Class
-
+This class can run and plot many simulations at once.
 
 ## Initial Belief Configurations
 The definition of `Belief`.{`UNIFORM`, `MILD`, `EXTREME`, `TRIPLE`} is as follows:
@@ -50,7 +62,3 @@ There is a new function that allows us to generate new initial belief configurat
 | TRIPLE      | o |   | o |   | o |
 
 To generate such configurations `build_belief` is provided.
-## Alternative Functions for Simulations
-
-## Helper Functions
-
