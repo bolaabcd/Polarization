@@ -48,8 +48,15 @@ class Update_Functions():
         return np.add.reduce(infs) / neighbours + beliefs
 
     def get_function(self,update_type):
+        update_arg=None
+        if type(update_type) is tuple:
+            update_arg=update_type[1]
+            update_type=update_type[0]
         if update_type in self.dictionary:
-            return self.dictionary[update_type]
+            if update_arg == None:
+                return self.dictionary[update_type]
+            else:
+                return partial(self.dictionary[update_type],k=update_arg)
         else:
             raise NotImplementedError(f"Not implemented for {update_type}.")
     def add_function(self,update_type,update_function):

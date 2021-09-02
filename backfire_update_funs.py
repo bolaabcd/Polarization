@@ -1,6 +1,4 @@
 from update_functions import Update_Functions, Enum
-from enum import auto
-from functools import partial
 import numpy as np
 
 class NewUpdate(Enum):
@@ -23,14 +21,15 @@ class BF_Update_Functions(Update_Functions):
         self.add_function(NewUpdate.CUBIC,self.neighbours_cubic_update)
         self.add_function(NewUpdate.CUBICNC,self.neighbours_cubic_nc_update)
         self.add_function(NewUpdate.MULTIROOT,self.neighbours_multiroot_update)
-        for i in range(-precision,precision+1):
-            self.add_function((NewUpdate.LINE,i/precision),partial(self.neighbours_line_update,rotation_alpha=i/precision))
-            self.add_function((NewUpdate.MODULUS,i/precision),partial(self.neighbours_modulus_update,modulus_k=i/precision))
-            self.add_function((NewUpdate.QUADRATIC,i/precision),partial(self.neighbours_quadratic_update,quadratic_k=i/precision))
-            self.add_function((NewUpdate.CUBIC,i/precision),partial(self.neighbours_cubic_update,cubic_k=i/precision))
-            self.add_function((NewUpdate.MULTIROOT,i/precision),partial(self.neighbours_multiroot_update,multi_root_k=i/precision))
-            self.add_function((NewUpdate.SUPERCUB,i/precision),partial(self.neighbours_super_update,super_k=i/precision))
-            self.add_function((NewUpdate.CUBICNC,i/precision),partial(self.neighbours_cubic_nc_update,cubic_nc_k=i/precision))
+        self.add_function(NewUpdate.SUPERCUB,self.neighbours_super_update)
+        #for i in range(-precision,precision+1):
+        #    self.add_function((NewUpdate.LINE,i/precision),partial(self.neighbours_line_update,rotation_alpha=i/precision))
+        #    self.add_function((NewUpdate.MODULUS,i/precision),partial(self.neighbours_modulus_update,modulus_k=i/precision))
+        #    self.add_function((NewUpdate.QUADRATIC,i/precision),partial(self.neighbours_quadratic_update,quadratic_k=i/precision))
+        #    self.add_function((NewUpdate.CUBIC,i/precision),partial(self.neighbours_cubic_update,cubic_k=i/precision))
+        #    self.add_function((NewUpdate.MULTIROOT,i/precision),partial(self.neighbours_multiroot_update,multi_root_k=i/precision))
+        #    self.add_function((NewUpdate.SUPERCUB,i/precision),partial(self.neighbours_super_update,super_k=i/precision))
+        #    self.add_function((NewUpdate.CUBICNC,i/precision),partial(self.neighbours_cubic_nc_update,cubic_nc_k=i/precision))
 
     #modulus_k:float=1
     def neighbours_modulus_update(self,beliefs,inf_graph,**kwargs):
@@ -40,6 +39,8 @@ class BF_Update_Functions(Update_Functions):
         the confirmation-backfire factor and the beliefs of all the agents' neighbors.
         """
         modulus_k=1
+        if "k" in kwargs:
+            modulus_k=kwargs["k"]
         if "modulus_k" in kwargs:
             modulus_k=kwargs["modulus_k"]
         modulus_k=0.5*modulus_k+0.5
@@ -60,6 +61,8 @@ class BF_Update_Functions(Update_Functions):
         the confirmation-backfire factor and the beliefs of all the agents' neighbors.
         """
         rotation_alpha=-1
+        if "k" in kwargs:
+            rotation_alpha=kwargs["k"]
         if "rotation_alpha" in kwargs:
             rotation_alpha=kwargs["rotation_alpha"]
         neighbours = [np.count_nonzero(inf_graph[:, i]) for i, _ in enumerate(beliefs)]
@@ -77,6 +80,8 @@ class BF_Update_Functions(Update_Functions):
         the confirmation-backfire factor and the beliefs of all the agents' neighbors.
         """
         quadratic_k=1
+        if "k" in kwargs:
+            quadratic_k=kwargs["k"]
         if "quadratic_k" in kwargs:
             quadratic_k=kwargs["quadratic_k"]
         quadratic_k+=1
@@ -96,6 +101,8 @@ class BF_Update_Functions(Update_Functions):
         the confirmation-backfire factor and the beliefs of all the agents' neighbors.
         """
         cubic_k=0
+        if "k" in kwargs:
+            cubic_k=kwargs["k"]
         if "cubic_k" in kwargs:
             cubic_k=kwargs["cubic_k"]
         cubic_k=0.5*cubic_k+0.5
@@ -114,6 +121,8 @@ class BF_Update_Functions(Update_Functions):
         the confirmation-backfire factor and the beliefs of all the agents' neighbors.
         """
         multi_root_k=0
+        if "k" in kwargs:
+            multi_root_k=kwargs["k"]
         if "multi_root_k" in kwargs:
             multi_root_k=kwargs["multi_root_k"]
         multi_root_k=0.5*multi_root_k+0.5
@@ -131,6 +140,8 @@ class BF_Update_Functions(Update_Functions):
         the confirmation-backfire factor and the beliefs of all the agents' neighbors.
         """
         super_k=0
+        if "k" in kwargs:
+            super_k=kwargs["k"]
         if "super_k" in kwargs:
             super_k=kwargs["super_k"]
         
@@ -149,6 +160,8 @@ class BF_Update_Functions(Update_Functions):
         the confirmation-backfire factor and the beliefs of all the agents' neighbors.
         """
         cubic_nc_k=0
+        if "k" in kwargs:
+            cubic_nc_k=kwargs["k"]
         if "cubic_nc_k" in kwargs:
             cubic_nc_k=kwargs["cubic_nc_k"]
         cubic_nc_k=0.5*cubic_nc_k+0.5
