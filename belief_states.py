@@ -1,6 +1,6 @@
 import math
 from enum import Enum
-
+import numpy as np
 
 ######################################################
 ## Parameters for the Belief states
@@ -31,6 +31,7 @@ class Belief(Enum):
     EXTREME = 2
     TRIPLE = 3
 #    CONSENSUS = 4
+    RANDOM = 5
 
 ## Current representation
 
@@ -57,3 +58,5 @@ def build_belief(belief_type: Belief, num_agents=NUM_AGENTS, **kwargs):
         return beliefs
     if belief_type is Belief.UNIFORM:
         return [i/(num_agents - 1) for i in range(num_agents)]
+    if belief_type is Belief.RANDOM:
+        return np.ndarray.tolist(np.random.uniform(0,1,num_agents))
