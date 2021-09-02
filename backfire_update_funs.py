@@ -51,7 +51,9 @@ class BF_Update_Functions(Update_Functions):
         #infs = inf_graph * (-np.abs(diff-fullMod)+fullMod)
         sigs=np.where(diff>=0, 1, -1)
         infs=sigs*inf_graph*(-np.abs(np.abs(diff)-fullMod)+fullMod)
-        preAns=np.add.reduce(infs) / neighbours + beliefs
+        preAns=np.add.reduce(infs) / neighbours
+        np.nan_to_num(preAns,copy=False)
+        preAns+=beliefs
         return np.clip(preAns,0,1)
         #rotation_alpha: kwarg
     def neighbours_line_update(self,beliefs,inf_graph,**kwargs):
@@ -69,7 +71,9 @@ class BF_Update_Functions(Update_Functions):
         diff = np.ones((len(beliefs), 1)) @  np.asarray(beliefs)[np.newaxis]
         diff = np.transpose(diff) - diff
         infs = inf_graph * rotation_alpha * diff
-        preAns=np.add.reduce(infs) / neighbours + beliefs
+        preAns=np.add.reduce(infs) / neighbours
+        np.nan_to_num(preAns,copy=False)
+        preAns+=beliefs
         return np.clip(preAns,0,1)
         
     #quadratic_k:float=2
@@ -91,7 +95,10 @@ class BF_Update_Functions(Update_Functions):
         fullQuad=np.full(diff.shape,quadratic_k)
         #infs = inf_graph * (-diff)*(diff-fullQuad)#-x*(x-k)
         infs=inf_graph * (-diff)*(np.abs(diff)-fullQuad)
-        preAns=np.add.reduce(infs) / neighbours + beliefs
+        preAns=np.add.reduce(infs) / neighbours
+        np.nan_to_num(preAns,copy=False)
+        preAns/=2
+        preAns+=beliefs
         return np.clip(preAns,0,1)
     #cubic_k:float=0.5
     def neighbours_cubic_update(self,beliefs,inf_graph,**kwargs):
@@ -111,7 +118,9 @@ class BF_Update_Functions(Update_Functions):
         diff = np.transpose(diff) - diff
         diff=diff/1.74#Constant
         infs = -inf_graph * diff*(diff-cubic_k)*(diff+cubic_k)*2.6
-        preAns=np.add.reduce(infs) / neighbours + beliefs
+        preAns=np.add.reduce(infs) / neighbours
+        np.nan_to_num(preAns,copy=False)
+        preAns+=beliefs
         return np.clip(preAns,0,1)
     #multi_root_k:float=0.5)
     def neighbours_multiroot_update(self,beliefs,inf_graph,**kwargs):
@@ -130,7 +139,9 @@ class BF_Update_Functions(Update_Functions):
         diff = np.ones((len(beliefs), 1)) @  np.asarray(beliefs)[np.newaxis]
         diff = np.transpose(diff) - diff
         infs = inf_graph * diff*(multi_root_k-np.abs(diff))*(1-np.abs(diff))#*27/16
-        preAns=np.add.reduce(infs) / neighbours + beliefs
+        preAns=np.add.reduce(infs) / neighbours
+        np.nan_to_num(preAns,copy=False)
+        preAns+=beliefs
         return np.clip(preAns,0,1)
     #super_k:float=0
     def neighbours_super_update(self,beliefs,inf_graph,**kwargs):
@@ -150,7 +161,9 @@ class BF_Update_Functions(Update_Functions):
         diff = np.transpose(diff) - diff
         
         infs = inf_graph * ((super_k+1)*(super_k-1)*diff**3+(-super_k**2+super_k+1)*diff)
-        preAns=np.add.reduce(infs) / neighbours + beliefs
+        preAns=np.add.reduce(infs) / neighbours
+        np.nan_to_num(preAns,copy=False)
+        preAns+=beliefs
         return np.clip(preAns,0,1)
     #cubic_nc_k:float=0.5
     def neighbours_cubic_nc_update(self,beliefs,inf_graph,**kwargs):
@@ -164,10 +177,13 @@ class BF_Update_Functions(Update_Functions):
             cubic_nc_k=kwargs["k"]
         if "cubic_nc_k" in kwargs:
             cubic_nc_k=kwargs["cubic_nc_k"]
-        cubic_nc_k=0.5*cubic_nc_k+0.5
+        cubic_nc_k=-cubic_nc_k-1
         neighbours = [np.count_nonzero(inf_graph[:, i]) for i, _ in enumerate(beliefs)]
         diff = np.ones((len(beliefs), 1)) @  np.asarray(beliefs)[np.newaxis]
         diff = np.transpose(diff) - diff
         infs = -inf_graph * diff*(diff-cubic_nc_k)*(diff+cubic_nc_k)
-        preAns=np.add.reduce(infs) / neighbours + beliefs
+        preAns=np.add.reduce(infs) / neighbours
+        np.nan_to_num(preAns,copy=False)
+        preAns/=4
+        preAns+=beliefs
         return np.clip(preAns,0,1)
