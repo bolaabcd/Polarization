@@ -98,6 +98,11 @@ def build_inf_graph_circular(num_agents, value):
         inf_graph[i, (i+1) % num_agents] = value
     return inf_graph
 
+def build_inf_graph_random(num_agents):
+    conects=np.random.random_integers(0,1,(num_agents,num_agents))
+    rands=np.random.uniform(0,1,(num_agents,num_agents))
+    return conects*rands
+
 class Influence(Enum):
     CLIQUE = 0
     GROUP_2_DISCONECTED = 1
@@ -105,6 +110,7 @@ class Influence(Enum):
     INFLUENCERS_2_BALANCED = 3
     INFLUENCERS_2_UNBALANCED = 4
     CIRCULAR = 5
+    RANDOM = 6
 
 def build_influence(
         inf_type: Influence,
@@ -156,4 +162,6 @@ def build_influence(
         if general_belief is None:
             general_belief = CIRCULAR_INF_VALUE
         return build_inf_graph_circular(num_agents, general_belief) 
+    if inf_type is Influence.RANDOM:
+        return build_inf_graph_random(num_agents)
     raise Exception('inf_type not recognized. Expected an `Influence`')
