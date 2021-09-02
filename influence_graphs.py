@@ -98,10 +98,13 @@ def build_inf_graph_circular(num_agents, value):
         inf_graph[i, (i+1) % num_agents] = value
     return inf_graph
 
-def build_inf_graph_random(num_agents):
+def build_inf_graph_random(num_agents,diagonal_value=None):
     conects=np.random.random_integers(0,1,(num_agents,num_agents))
     rands=np.random.uniform(0,1,(num_agents,num_agents))
-    return conects*rands
+    ans=conects*rands
+    if diagonal_value!=None:
+        np.fill_diagonal(ans,diagonal_value)
+    return ans
 
 class Influence(Enum):
     CLIQUE = 0
