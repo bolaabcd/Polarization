@@ -52,3 +52,9 @@ class Simulation:
             belief_history.append(belief_vec_state)
             pol_history.append(pol_state)
         return (np.array(pol_history), np.array(belief_history), pol_history[-1])
+    def get_final_state(self,max_time=1000000):
+        previous_belief=np.array([])
+        for _, (belief_vec_state, pol_state) in zip(range(max_time), self):
+            if (previous_belief.size> 0) and np.array_equal(previous_belief,belief_vec_state):
+                return previous_belief
+            previous_belief=belief_vec_state
