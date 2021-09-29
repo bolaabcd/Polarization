@@ -7,7 +7,7 @@ class NewUpdate(Enum):
     QUADRATIC="Quadratic"
     CUBIC="Cubic"
     MULTIROOT="MultiRoot"#Not used anymore.
-    SUPERCUB="SuperCubic"
+    INTERPOLATED="InterpolatedCubic"
     CUBICNC="CubicNoConstant"#Just for tests.
 
 class BF_Update_Functions(Update_Functions):
@@ -21,14 +21,14 @@ class BF_Update_Functions(Update_Functions):
         self.add_function(NewUpdate.CUBIC,self.neighbours_cubic_update)
         self.add_function(NewUpdate.CUBICNC,self.neighbours_cubic_nc_update)
         self.add_function(NewUpdate.MULTIROOT,self.neighbours_multiroot_update)
-        self.add_function(NewUpdate.SUPERCUB,self.neighbours_super_update)
+        self.add_function(NewUpdate.INTERPOLATED,self.neighbours_super_update)
         #for i in range(-precision,precision+1):
         #    self.add_function((NewUpdate.LINE,i/precision),partial(self.neighbours_line_update,rotation_alpha=i/precision))
         #    self.add_function((NewUpdate.MODULUS,i/precision),partial(self.neighbours_modulus_update,modulus_k=i/precision))
         #    self.add_function((NewUpdate.QUADRATIC,i/precision),partial(self.neighbours_quadratic_update,quadratic_k=i/precision))
         #    self.add_function((NewUpdate.CUBIC,i/precision),partial(self.neighbours_cubic_update,cubic_k=i/precision))
         #    self.add_function((NewUpdate.MULTIROOT,i/precision),partial(self.neighbours_multiroot_update,multi_root_k=i/precision))
-        #    self.add_function((NewUpdate.SUPERCUB,i/precision),partial(self.neighbours_super_update,super_k=i/precision))
+        #    self.add_function((NewUpdate.INTERPOLATED,i/precision),partial(self.neighbours_super_update,super_k=i/precision))
         #    self.add_function((NewUpdate.CUBICNC,i/precision),partial(self.neighbours_cubic_nc_update,cubic_nc_k=i/precision))
 
     #modulus_k:float=1

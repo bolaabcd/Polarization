@@ -9,9 +9,7 @@ class Update(Enum):
 ## Update Functions Implementation
 #####################################
 class Update_Functions():
-    def __init__(self,hasDefaults=True,precision: int=4):
-        if precision<=0:
-            raise ValueError('Precision need to be a positive integer')
+    def __init__(self,hasDefaults=True):
         if hasDefaults:
             self.dictionary={
                 Update.CLASSIC:self.neighbours_update,

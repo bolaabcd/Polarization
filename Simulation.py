@@ -11,7 +11,7 @@ import warnings
 MAX_TIME=200
 
 class Simulation:
-    def __init__(self, belief_vec, inf_graph, update_fun, pol_instance : Polarization_Measure=Esteban_Ray_polarization(),**kwargs):
+    def __init__(self, belief_vec, inf_graph, update_fun, pol_instance : Polarization_Measure=Esteban_Ray_polarization(), **kwargs):
         self.belief_vec = np.array(belief_vec)
         self.inf_graph = inf_graph
         self.update_fun = update_fun
@@ -53,7 +53,7 @@ class Simulation:
             belief_history.append(belief_vec_state)
             pol_history.append(pol_state)
         return (np.array(pol_history), np.array(belief_history), pol_history[-1])
-    def get_final_state(self,max_time=1000000,tolerance=1e-6):
+    def get_final_state(self,max_time=50000 ,tolerance=1e-6):
         previous_belief=np.array([])
         two_previous=np.array([])
         for _, (belief_vec_state, pol_state) in zip(range(max_time), self):

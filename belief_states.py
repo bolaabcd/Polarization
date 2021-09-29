@@ -6,20 +6,9 @@ import numpy as np
 ## Parameters for the Belief states
 ######################################################
 
-## number of agents
+## default number of agents
 NUM_AGENTS = 100
 
-## for consensus belief-function: belief value for the consensus belief state
-CONSENSUS_VALUE = 0.5
-
-## Values for the old belief configurations:
-## -----------------------------------------
-## for mildly-polarized belief-function: belief value for the upper end of the low pole of a mildly polarized belief state
-LOW_POLE = 0.25
-## for mildly-polarized belief-function: belief value for the lower end of the high pole of a mildly polarized belief state
-HIGH_POLE = 0.75
-## for mildly-polarized belief-function: step of belief change from agent to agent in mildly polarized belief state
-BELIEF_STEP = 0.01
 
 ############################################
 ## Representing belief states implementation
@@ -30,10 +19,7 @@ class Belief(Enum):
     MILD = 1
     EXTREME = 2
     TRIPLE = 3
-#    CONSENSUS = 4
-    RANDOM = 5
-
-## Current representation
+    RANDOM = 4
 
 def build_belief(belief_type: Belief, num_agents=NUM_AGENTS, **kwargs):
     """Evenly distributes the agents beliefs into subgroups.
