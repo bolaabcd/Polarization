@@ -1,64 +1,67 @@
-# A Model for the Dynamics of Polarization
+# Simulations of Multi-Agent Models for polarization in society
+This github repository has python code for simulating the evolution of agent opinions in a generalization of the model presented [here](https://link.springer.com/chapter/10.1007/978-3-030-78089-0_2). At the moment, it can represent society as a graph in wich every person is represented as a node, and communication between agents is a directed edge with some "influence" weight associeted to it. Also, we only deal with discrete and syncrhonous update functions, and we model evolution of the opinion on only one proposition, represented as a value between 0 and 1.
 
-Implemented for Python 3.
+Briefly explaining how we represent everything in the model:
+* Society graph is represented by it's adjacency matrix, with the influence strength between two agents in the entrances of the matrix if they influence each other. If not, we have 0 in that entrance.
+* The current state of society is represented by a belief vector, in wich the *i-th* entrance is the belief value of agent *i* on the proposition **p**.
 
-## Dependencies
+Below, we will explain in detail what we have implemented in this repository. In the end of the README, we have a brief explanation on how to use the modules in this repository.
 
-This project depends on [NumPy](https://numpy.org/index.html) (tested on 1.19.0) which may be installed from a console using pip:
+## The polarization_measure module
+This is a very simple interface for a polarization measure. A polarization measure is basically a function that recieves the vector of beliefs of all agents and returns a real-number value that represents the polarization level of society at a given point in time. To use the measure, you can create an object that implements the interface and call the method `pol_measure`, passing a vector of beliefs of all agents as an argument.
 
-```
-python3 -m pip install numpy
-```
+The `Esteban_Ray_polarization.py` file implements the Esteban-Ray measure for polarization.
 
-Optionally, we recommend installing [Matplotlib](https://matplotlib.org/) for creating graphs and charts, and [Jupyter Notebooks](https://jupyter.org/index.html) for running simulations interactively.
+## The belief_states module
+This module contains a function called `build_belief(belief_type,num_agents)`, that recieves the belief type and the number of agents as parameters, and returns a vector of beliefs of size *num_agents*. Note that the *belief_type* is a type of the Enum `Belief`, that is also in this module.
 
-```
-python3 -m pip install matplotlib notebook
-```
+Here we implement five default initial belief states:
+* **UNIFORM** is the initial state in wich all agents have their beleifs uniformly distributed between 0 and 1.
+* **MILD** is the state that represents a society with opinions split between two middle opinions.
+* **EXTREME** is the state that represents a society with two groups of extreme opinions.
+* **TRIPLE** is the stat that represents a society with three groups of opinions: two extremes and one in the middle.
+* **RANDOM** is simply a random initial state. All belief values are generated with python's `random` module.
 
-To install all dependencies you can also run:
+## The influence_graphs module
+This module has a function called `build_influence`, and its main parameters are `inf_type` (that describes the type of influence graph to build) and `num_agents` (that indicates how many agents should be in the graph). *inf_type* is one of the `Influence` Enum, wich is also in this module.
 
-```
-python3 -m pip install -r requirements.txt
-```
+We implement seven default influence graphs:
+* **CLIQUE** represents the case where every agent influences all other agents.
+* **GROUP_2_DISCONECTED** represents two completely disconnected groups, that share no communication between then but that if two agents are in the same group, then they have influence over each other.
+* **GROUP_2_FAINT** represents two groups with weak influence on each other, but not zero.
+* **INFLUENCERS_2_BALANCED** represents a society two distinct influencers, and the resulting graph is balanced.
+* **INFLUENCERS_2_UNBALANCED** represents a society with two distinct influencers, and the resulting graph is not balanced.
+* **CIRCULAR** builds a circular graph, so one agent influences exactly another and is influenced by one agent.
+* **RANDOM** builds a random influence graph. All influence values are generated with python's `random` module.
 
-## Running Simulations
-If you want to try, or recreate, the simulations in `ExampleSimulations.ipynb` for yourself, download this repository, install the corresponding dependencies, and run the jupyter notebook server with access to all .py files of the project. For example, in the same folder as the .py files are located, run:
+## The update_functions module
+This module implements an interface for update functions (we call anything that extends this class a **function container**), with implementations for the classic and the confirmation bias ones. `get_function` method returns the desired update function, and `add_function` adds one. Note that internally the functions are stored in a dictionary, so we can expand the list of functions as much as we want. 
 
-```
-jupyter notebook
-```
+The Confirmation Bias and Classic functions are stored in the dictionary with elements of the Enum *Update* (that is in this same module) as keys.
 
-Select `ExampleSimulations.ipynb`, and make sure to set it as trusted, or just re-run the desired cells.
+We implemented other functions in the `backfire_update_funs` module. They are acessed by using the elements of the *NewUpdate* Enum as keys. The main functions we have are **LINE**, **MODULUS**, **QUADRATIC**, **CUBIC** and **INTERPOLATED**.
 
-If you want to run many of the possible simulations and save the results to PDF, do the same as above but with `ManySimlations.ipynb` (and make sure to create the 'ags' and the 'pols' folders, because the results will be placed in these folders).
+## The Simulation module
+This module implements the class `Simulation`, that can run the simulation and return the history of polarization and agents beliefs evolution with the method `run(max_time = 100, smart_stop = True`: *max_time* is the time limit of the simulation (this is according to the discrete time steps, not computation time), and *smart_stop* is whether the simulation should stop if it gets the same result in two consecutive time steps.
 
+There is also a method to get the final state to which the system converges if there is such a state: `get_final_state(self,max_time=50000 ,tolerance=1e-6)`, this method basically returns the first belief state in which agents opinions don't change anymore, or the state the system was when it reached the time limit. The *tolerance* parameter specifies how close should two belief states be to be considered the same. 
 
-## The `BF_Update_Functions` Class
-This class contains all functions that implement the Backfire-Effect. For now you can select only values of k that were pre-created (Should be fixed in a few updates).
+## The simulation_multiple module
+This module implements the class `ManySimulations`, that runs a lot of simulations subsequently. The constructor accepts identifiers of the update functions, initial beliefs, influence graphs, the maximum time of the simulations, if smart_stop should be enabled and the update functions container that should be used.
 
-### `Update_Functions` Class
-All update functions should extend this class. It contains the Confirmation Bias update function, the Classic update function, and methods to add and get new functions.
+We now give a brief description of the methods of this class:
+* The method `run` runs all simulations and stores the results in the `completed_sims` attribute.
+* The method `plot_polarization(saveTo = None)` plots the polarization of all simulations and stores it in `saveTo` (which should be a file or a path to a file), and this parameter is not specified, the resulting plot is simply closed. Because each graph is simply a line, we plot in the same place all graphs that started with the same belief value and has the same influence graph.
+* The method `plot_agents(saveTo = None)` does the same as the above one, but with the graphs that represent the evolution of agents, not of polarization. Every distinct update function, influence graph and initial belief state is plotted separately.
 
-## The `Esteban_Ray_polarization` Class
-This class implements the Esteban-Ray polarization measure.
+## About the Notebooks
+We also have some github notebooks in this repository to help visualize how everything works:
 
-### `Polarization_Measure` Interface
-All polarization measure functions should extend this interface. It doesn't do anything.
+* **ManySimulations** runs simulations for every combination of update function, update graph and initial belief state (ignoring the randomly generated cases), and stores in the folders "pols" and "ags".
+* **ExampleSimulations** show some examples of how to use the modules in this repository.
 
-## The `ManySimulations` Class
-This class can run and plot many simulations at once.
+## How to use the modules in this repository
 
-## Initial Belief Configurations
-The definition of `Belief`.{`UNIFORM`, `MILD`, `EXTREME`, `TRIPLE`} is as follows:
+To use the modules in this repository, you simply need to add to the beginning of your python file `import module_name`, replacing "module_name" with the name of the module you want. Notice that some modules depend on other modules, so make sure that you have all the necessary .py files acessible for importing.
 
-There is a new function that allows us to generate new initial belief configurations based on a 5 bins Esteban-Ray Polarization measure, evently distributing all agents in clusters between the [0, 1] interval.
-
-| Belief      | [0, 0.2) | [0.2, 0.4) | [0.4, 0.6) | [0.6, 0.8) | [0.8, 1] |
-| ----------- | :------: | :--------: | :--------: | :--------: | :------: |
-| UNIFORM     | o | o | o | o | o |
-| MILD        |   | o |   | o |   |
-| EXTREME     | o |   |   |   | o |
-| TRIPLE      | o |   | o |   | o |
-
-To generate such configurations `build_belief` is provided.
+Also note that it is necessary to install *numpy* for most of the modules in this repository to work and, if you want to visualize the data, you will also need *matplotlib*. To see the Jupyter Notebooks correctly, you will also need to install Jupyter or use the Google Colab online services.
