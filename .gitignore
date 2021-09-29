@@ -9,3 +9,4 @@ __pycache__
 debugging.py
 generated/
 tests.ipynb
+test.py
