@@ -55,12 +55,9 @@ class Simulation:
         return (np.array(pol_history), np.array(belief_history), pol_history[-1])
     def get_final_state(self,max_time=50000 ,tolerance=1e-6):
         previous_belief=np.array([])
-        two_previous=np.array([])
         for _, (belief_vec_state, pol_state) in zip(range(max_time), self):
             if (previous_belief.size> 0) and np.linalg.norm(previous_belief-belief_vec_state)<=tolerance:
                 return belief_vec_state
-            if (two_previous.size> 0) and np.linalg.norm(two_previous-belief_vec_state)<=tolerance:
-                warnings.warn("Loop found!")
-                return belief_vec_state
-            two_previous=previous_belief
             previous_belief=belief_vec_state
+        return belief_vec_state
+        

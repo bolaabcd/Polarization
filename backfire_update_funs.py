@@ -8,28 +8,16 @@ class NewUpdate(Enum):
     CUBIC="Cubic"
     MULTIROOT="MultiRoot"#Not used anymore.
     INTERPOLATED="InterpolatedCubic"
-    CUBICNC="CubicNoConstant"#Just for tests.
 
 class BF_Update_Functions(Update_Functions):
     def __init__(self,precision: int=4):
-        if precision<=0:
-            raise ValueError('Precision need to be a positive integer')
-        super().__init__(precision=precision)
+        super().__init__()
         self.add_function(NewUpdate.LINE,self.neighbours_line_update)
         self.add_function(NewUpdate.MODULUS,self.neighbours_modulus_update)
         self.add_function(NewUpdate.QUADRATIC,self.neighbours_quadratic_update)
         self.add_function(NewUpdate.CUBIC,self.neighbours_cubic_update)
-        self.add_function(NewUpdate.CUBICNC,self.neighbours_cubic_nc_update)
         self.add_function(NewUpdate.MULTIROOT,self.neighbours_multiroot_update)
         self.add_function(NewUpdate.INTERPOLATED,self.neighbours_super_update)
-        #for i in range(-precision,precision+1):
-        #    self.add_function((NewUpdate.LINE,i/precision),partial(self.neighbours_line_update,rotation_alpha=i/precision))
-        #    self.add_function((NewUpdate.MODULUS,i/precision),partial(self.neighbours_modulus_update,modulus_k=i/precision))
-        #    self.add_function((NewUpdate.QUADRATIC,i/precision),partial(self.neighbours_quadratic_update,quadratic_k=i/precision))
-        #    self.add_function((NewUpdate.CUBIC,i/precision),partial(self.neighbours_cubic_update,cubic_k=i/precision))
-        #    self.add_function((NewUpdate.MULTIROOT,i/precision),partial(self.neighbours_multiroot_update,multi_root_k=i/precision))
-        #    self.add_function((NewUpdate.INTERPOLATED,i/precision),partial(self.neighbours_super_update,super_k=i/precision))
-        #    self.add_function((NewUpdate.CUBICNC,i/precision),partial(self.neighbours_cubic_nc_update,cubic_nc_k=i/precision))
 
     #modulus_k:float=1
     def neighbours_modulus_update(self,beliefs,inf_graph,**kwargs):
@@ -112,16 +100,17 @@ class BF_Update_Functions(Update_Functions):
             cubic_k=kwargs["k"]
         if "cubic_k" in kwargs:
             cubic_k=kwargs["cubic_k"]
-        cubic_k=0.5*cubic_k+0.5
+        cubic_k=-cubic_k-1
         neighbours = [np.count_nonzero(inf_graph[:, i]) for i, _ in enumerate(beliefs)]
         diff = np.ones((len(beliefs), 1)) @  np.asarray(beliefs)[np.newaxis]
         diff = np.transpose(diff) - diff
-        diff=diff/1.74#Constant
-        infs = -inf_graph * diff*(diff-cubic_k)*(diff+cubic_k)*2.6
+        infs = -inf_graph * diff*(diff-cubic_k)*(diff+cubic_k)
         preAns=np.add.reduce(infs) / neighbours
         np.nan_to_num(preAns,copy=False)
+        preAns/=4
         preAns+=beliefs
         return np.clip(preAns,0,1)
+    
     #multi_root_k:float=0.5)
     def neighbours_multiroot_update(self,beliefs,inf_graph,**kwargs):
         """Applies the basic quadratic update function as matrix multiplication.
@@ -163,27 +152,5 @@ class BF_Update_Functions(Update_Functions):
         infs = inf_graph * ((super_k+1)*(super_k-1)*diff**3+(-super_k**2+super_k+1)*diff)
         preAns=np.add.reduce(infs) / neighbours
         np.nan_to_num(preAns,copy=False)
-        preAns+=beliefs
-        return np.clip(preAns,0,1)
-    #cubic_nc_k:float=0.5
-    def neighbours_cubic_nc_update(self,beliefs,inf_graph,**kwargs):
-        """Applies the basic quadratic update function as matrix multiplication.
-        
-        For each agent, update their beliefs factoring the authority bias,
-        the confirmation-backfire factor and the beliefs of all the agents' neighbors.
-        """
-        cubic_nc_k=0
-        if "k" in kwargs:
-            cubic_nc_k=kwargs["k"]
-        if "cubic_nc_k" in kwargs:
-            cubic_nc_k=kwargs["cubic_nc_k"]
-        cubic_nc_k=-cubic_nc_k-1
-        neighbours = [np.count_nonzero(inf_graph[:, i]) for i, _ in enumerate(beliefs)]
-        diff = np.ones((len(beliefs), 1)) @  np.asarray(beliefs)[np.newaxis]
-        diff = np.transpose(diff) - diff
-        infs = -inf_graph * diff*(diff-cubic_nc_k)*(diff+cubic_nc_k)
-        preAns=np.add.reduce(infs) / neighbours
-        np.nan_to_num(preAns,copy=False)
-        preAns/=4
         preAns+=beliefs
         return np.clip(preAns,0,1)
