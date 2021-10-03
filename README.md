@@ -54,6 +54,15 @@ We now give a brief description of the methods of this class:
 * The method `plot_polarization(saveTo = None)` plots the polarization of all simulations and stores it in `saveTo` (which should be a file or a path to a file), and this parameter is not specified, the resulting plot is simply closed. Because each graph is simply a line, we plot in the same place all graphs that started with the same belief value and has the same influence graph.
 * The method `plot_agents(saveTo = None)` does the same as the above one, but with the graphs that represent the evolution of agents, not of polarization. Every distinct update function, influence graph and initial belief state is plotted separately.
 
+## The random_tests module
+This module is capable of running many simulations and check if some of the two implemented properties is true, and if it's not true for some test case, we save the seed we used to generate the influence graph, the seed used to generate the initial belief graph, and the value of k. We also implement functions for plotting the cases that didn't match the property analised, and functions recovering the initial belief and the influence graph from their seeds. Below we name and briefly describe these functions:
+
+* **get_influence(seed, num_agents, minimum_influence = 0, diagonal_value = None)** runs the random influence graph generator with the specified seed and parameters and returns it's matrix.
+* **get_initial_belief(seed, num_agents)** runs the random initial belief generator with the specified seed and number of agents, and returns it's vector.
+* **test_final_results_equal(container, keys, test_name, number_of_sims = 100000, nagents = 100, minimum_influence = 0, diagonal_value = None)** tests if the functions in the *container* identified by the *keys* have the same final value with random values of *k*, random influence graphs and random beliefs. *number_of_sims* specifies how many random simulations to run, *nagents* the number of agents in each simulation, *minimum_influence* and *diagonal_value* are parameters of the random influence graph generator. All cases in which not all functions got the same result are stored in a file called *test_name* inside a folder called 123456_equals (note that 123456 is the global seed, that can be changed manually in the module file).
+* **test_final_results_value(container, keys, test_name, number_of_sims = 100000, nagents = 100, minimum_influence = 0, diagonal_value = None)** tests if the final values of the specified functions can be calculated with the formula that seems to work for two agents. All parameters for this function are the same as the ones for the above function.
+* **plot_differents(global_seed, test_name, container, keys, nagents = 100, max_time = 1000, saveTo = None, type = "equals")** runs the cases that have seeds stored in the correspondent file and plots them. *saveTo* specifies the path of a file where the plots will be stored, and if not specified, they won't be stored (wich may be useful).
+
 ## About the Notebooks
 We also have some github notebooks in this repository to help visualize how everything works:
 
