@@ -39,6 +39,9 @@ INFLUENCERS_UNBALANCED_OTHERS = 0.2
 ## for circular influence-graph: belief value of all agents on a circular influence graph
 CIRCULAR_INF_VALUE = 0.5
 
+## for random influence graph: minimum influence value
+MIN_INF = 0
+
 
 #####################################
 ## Influence graphs implementation
@@ -98,9 +101,9 @@ def build_inf_graph_circular(num_agents, value):
         inf_graph[i, (i+1) % num_agents] = value
     return inf_graph
 
-def build_inf_graph_random(num_agents,diagonal_value=None):
+def build_inf_graph_random(num_agents,diagonal_value=None,minimum_influence=MIN_INF):
     conects=np.random.random_integers(0,1,(num_agents,num_agents))
-    rands=np.random.uniform(0,1,(num_agents,num_agents))
+    rands=np.random.uniform(minimum_influence,1,(num_agents,num_agents))
     ans=conects*rands
     if diagonal_value!=None:
         np.fill_diagonal(ans,diagonal_value)
@@ -125,7 +128,9 @@ def build_influence(
         influencer_incoming_belief=None,
         influencer_outgoing_belief=None,
         influencer2_incoming_belief=INFLUENCERS_UNBALANCED_INCOMING_SECOND,
-        influencer2_outgoing_belief=INFLUENCERS_UNBALANCED_OUTGOING_SECOND):
+        influencer2_outgoing_belief=INFLUENCERS_UNBALANCED_OUTGOING_SECOND,
+        minimum_influence = MIN_INF,
+        diagonal_value = None):
     """Builds the initial influence graph according to the `inf_type`.
 
     Helper function when iterating over the `Influence` enum. The default values
@@ -166,5 +171,9 @@ def build_influence(
             general_belief = CIRCULAR_INF_VALUE
         return build_inf_graph_circular(num_agents, general_belief) 
     if inf_type is Influence.RANDOM:
-        return build_inf_graph_random(num_agents)
+        return build_inf_graph_random(
+            num_agents,
+            diagonal_value = diagonal_value,
+            minimum_influence = minimum_influence
+            )
     raise Exception('inf_type not recognized. Expected an `Influence`')
