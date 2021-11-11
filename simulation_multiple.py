@@ -15,7 +15,7 @@ class Raw_Sim:
     
 
 class ManySimulations:
-    def __init__(self,update_keys,belief_keys,influence_keys,cmax_time=MAX_TIME,smart_stop=False,up_funs=Update_Functions()):
+    def __init__(self,update_keys,belief_keys,influence_keys,cmax_time=MAX_TIME,smart_stop=False,up_funs=Update_Functions(), num_agents=100):
         self.update_keys=update_keys
         self.belief_keys=belief_keys
         self.influence_keys=influence_keys
@@ -25,9 +25,10 @@ class ManySimulations:
 
         self.up_funs=up_funs
         self.completed_sims=None
+        self.num_agents=num_agents
     def run(self):
         raw_simulations = [Raw_Sim(
-                sim=Simulation(build_belief(blf, len(blf)), build_influence(inf, len(inf)), self.up_funs.get_function(upFun)),
+                sim=Simulation(build_belief(blf, self.num_agents), build_influence(inf, self.num_agents), self.up_funs.get_function(upFun)),
                 inf=inf,
                 blf=blf,
                 fun=upFun,
