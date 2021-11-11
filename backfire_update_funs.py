@@ -40,7 +40,7 @@ class BF_Update_Functions(Update_Functions):
         sigs=np.where(diff>=0, 1, -1)
         infs=sigs*inf_graph*(-np.abs(np.abs(diff)-fullMod)+fullMod)
         preAns=np.add.reduce(infs) / neighbours
-        np.nan_to_num(preAns,copy=False)
+        # np.nan_to_num(preAns,copy=False)
         preAns+=beliefs
         return np.clip(preAns,0,1)
         #rotation_alpha: kwarg
@@ -60,7 +60,7 @@ class BF_Update_Functions(Update_Functions):
         diff = np.transpose(diff) - diff
         infs = inf_graph * rotation_alpha * diff
         preAns=np.add.reduce(infs) / neighbours
-        np.nan_to_num(preAns,copy=False)
+        # np.nan_to_num(preAns,copy=False)
         preAns+=beliefs
         return np.clip(preAns,0,1)
         
@@ -84,7 +84,7 @@ class BF_Update_Functions(Update_Functions):
         #infs = inf_graph * (-diff)*(diff-fullQuad)#-x*(x-k)
         infs=inf_graph * (-diff)*(np.abs(diff)-fullQuad)
         preAns=np.add.reduce(infs) / neighbours
-        np.nan_to_num(preAns,copy=False)
+        # np.nan_to_num(preAns,copy=False)
         preAns/=2
         preAns+=beliefs
         return np.clip(preAns,0,1)
@@ -106,7 +106,7 @@ class BF_Update_Functions(Update_Functions):
         diff = np.transpose(diff) - diff
         infs = -inf_graph * diff*(diff-cubic_k)*(diff+cubic_k)
         preAns=np.add.reduce(infs) / neighbours
-        np.nan_to_num(preAns,copy=False)
+        # np.nan_to_num(preAns,copy=False)
         preAns/=4
         preAns+=beliefs
         return np.clip(preAns,0,1)
@@ -129,7 +129,7 @@ class BF_Update_Functions(Update_Functions):
         diff = np.transpose(diff) - diff
         infs = inf_graph * diff*(multi_root_k-np.abs(diff))*(1-np.abs(diff))#*27/16
         preAns=np.add.reduce(infs) / neighbours
-        np.nan_to_num(preAns,copy=False)
+        # np.nan_to_num(preAns,copy=False)
         preAns+=beliefs
         return np.clip(preAns,0,1)
     #super_k:float=0
@@ -151,6 +151,6 @@ class BF_Update_Functions(Update_Functions):
         
         infs = inf_graph * ((super_k+1)*(super_k-1)*diff**3+(-super_k**2+super_k+1)*diff)
         preAns=np.add.reduce(infs) / neighbours
-        np.nan_to_num(preAns,copy=False)
+        # np.nan_to_num(preAns,copy=False)
         preAns+=beliefs
         return np.clip(preAns,0,1)

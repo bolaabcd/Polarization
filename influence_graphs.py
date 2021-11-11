@@ -101,7 +101,7 @@ def build_inf_graph_circular(num_agents, value):
         inf_graph[i, (i+1) % num_agents] = value
     return inf_graph
 
-def build_inf_graph_random(num_agents,diagonal_value=None,minimum_influence=MIN_INF):
+def build_inf_graph_random(num_agents,diagonal_value=1,minimum_influence=MIN_INF):
     conects=np.random.random_integers(0,1,(num_agents,num_agents))
     rands=np.random.uniform(minimum_influence,1,(num_agents,num_agents))
     ans=conects*rands
