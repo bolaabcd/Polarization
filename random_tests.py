@@ -1,4 +1,5 @@
 from math import ceil
+from typing import final
 import matplotlib.pyplot as plt
 from Simulation import Simulation
 import cli_utils as cli
@@ -9,7 +10,8 @@ import os
 
 GLOBAL_SEED = 123456
 
-def get_influence(seed, num_agents, minimum_influence = 0, diagonal_value = None):
+# Getting influence graph and initial belief from seed:
+def get_influence(seed, num_agents, minimum_influence = 0, diagonal_value = 1):
     np.random.seed(seed)
     return build_influence(
         Influence.RANDOM, 
@@ -21,6 +23,33 @@ def get_influence(seed, num_agents, minimum_influence = 0, diagonal_value = None
 def get_initial_belief(seed, num_agents):
     np.random.seed(seed)
     return build_belief(Belief.RANDOM, num_agents = num_agents)
+
+#Computing the final state by using the formula, if possible:
+def nullspace(A, atol=1e-13, rtol=0):
+    A = np.atleast_2d(A)
+    u, s, vh = np.linalg.svd(A)
+    tol = max(atol, rtol * s[0])
+    nnz = (s >= tol).sum()
+    ns = vh[nnz:].conj().T
+    return ns
+def get_weights(influence_graph):
+    sist = []
+    for i in range(len(influence_graph)):
+        for j in range(i+1,len(influence_graph)):
+            sist.append([0 for i in range(len(influence_graph))])
+            sist[-1][i]+=influence_graph[j][i]
+            sist[-1][j]-=influence_graph[i][j]
+    return nullspace(sist)
+def get_final_state(influence_graph,initial_belief):
+    weights = get_weights(influence_graph)
+    if weights.shape[0]>0 and weights.shape[1]>0:
+        weights = weights[:,0]
+        neighbours = [np.count_nonzero(influence_graph[:, i]) for i, _ in enumerate(initial_belief)]
+        weights = weights * neighbours
+        return np.sum(initial_belief * weights)/np.sum(weights)
+    else:
+        return []
+
 
 np.random.seed(GLOBAL_SEED)
 def test_final_results_equal(
@@ -35,7 +64,7 @@ def test_final_results_equal(
     if not os.path.isdir(f"./generated/{GLOBAL_SEED}_equals"):
         os.mkdir(f"./generated/{GLOBAL_SEED}_equals")
     seedsUsed = [(np.random.randint(0, 2**32-1),np.random.randint(0, 2**32-1)) for i in range(number_of_sims)]
-    ksUsed = [np.random.rand() for i in range(number_of_sims)]
+    ksUsed = [np.random.rand()*2-1 for i in range(number_of_sims)]
 
     initPos = 0
     if os.path.isfile(f"./generated/{GLOBAL_SEED}_equals/{test_name}"):
@@ -138,12 +167,12 @@ def test_final_results_value(
     number_of_sims = 100000, 
     nagents = 100,
     minimum_influence = 0,
-    diagonal_value = None
+    diagonal_value = 1
 ):
     if not os.path.isdir(f"./generated/{GLOBAL_SEED}_value"):
         os.mkdir(f"./generated/{GLOBAL_SEED}_value")
     seedsUsed = [(np.random.randint(0, 2**32-1),np.random.randint(0, 2**32-1)) for i in range(number_of_sims)]
-    ksUsed = [np.random.rand() for i in range(number_of_sims)]
+    ksUsed = [np.random.rand()*2-1 for i in range(number_of_sims)]
 
     initPos = 0
     if os.path.isfile(f"./generated/{GLOBAL_SEED}_value/{test_name}"):
@@ -154,7 +183,7 @@ def test_final_results_value(
         arq = open(f"./generated/{GLOBAL_SEED}_value/{test_name}", "w")
         arq.write("000000\n")
         arq.close()
-    
+    correct=0
     for i in cli.ProgressRange(number_of_sims, "running"):
         if i < initPos:
             continue
@@ -176,29 +205,22 @@ def test_final_results_value(
         
         predicted = []
         for fun in funs:
-            indegrees = np.array([np.count_nonzero(rand_inf[:, i]) for i in range(len(rand_bel))])
-            infs = rand_inf.copy()
-            np.fill_diagonal(infs,1)
-            influences = np.array([np.prod(infs[i,:]) for i in range(len(rand_bel))])
-            
-            if np.all(influences != 0):
-                infs[infs == 0] = 1
-                influences = np.array([np.prod(infs[i,:]) for i in range(len(rand_bel))])
-                predicted.append(np.sum(indegrees*influences*rand_bel)/np.sum(indegrees*influences))
-            elif np.all(influences == 0):
-                predicted.append(rand_bel)
-            else:
-                rand_bel = np.array(rand_bel)
-                predicted.append(rand_bel[influences!=0][0])
+            predicted.append(get_final_state(rand_inf,rand_bel))
 
         arq = open(f"./generated/{GLOBAL_SEED}_value/{test_name}","r+")
         for j in range(len(final_states)):
-            if np.linalg.norm(final_states[j] - predicted[j])>1e-3:
-                print("Difference found!")
-                arq.seek(0,os.SEEK_END)
-                arq.write(f"({k},{seedsUsed[i][0]},{seedsUsed[i][1]})\n")
-                break
+            # print(f'k= {k},\n result= {final_states[j]},\n predicted = {predicted[j]}\n influence =\n {rand_inf}\n initbel = {rand_bel}')
+            if predicted[j] and np.all(abs(final_states[j]-final_states[j][0]) <= 1e-5):
+                if np.linalg.norm(final_states[j] - predicted[j])>1e-3:
+                    print(f'\nDifference found!: k= {k},\n result= {final_states[j]},\n predicted = {predicted[j]}\n influence =\n {rand_inf}\n initbel = {rand_bel}')
+                    arq.seek(0,os.SEEK_END)
+                    arq.write(f"({k},{seedsUsed[i][0]},{seedsUsed[i][1]})\n")
+                    break
+                else:
+                    correct+=1
+                    # print("Predicted correcly!")
         arq.seek(0)
         arq.write(str(initPos).zfill(6))
         arq.close()
+    print(f'Correct predictions: {100*correct/(number_of_sims*len(funs))}%')
 
