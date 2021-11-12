@@ -152,5 +152,6 @@ class BF_Update_Functions(Update_Functions):
         infs = inf_graph * ((super_k+1)*(super_k-1)*diff**3+(-super_k**2+super_k+1)*diff)
         preAns=np.add.reduce(infs) / neighbours
         # np.nan_to_num(preAns,copy=False)
+        preAns/=1.5
         preAns+=beliefs
         return np.clip(preAns,0,1)
