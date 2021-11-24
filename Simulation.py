@@ -1,9 +1,6 @@
 from polarization_measure import Polarization_Measure
 import numpy as np
-#from update_functions import make_update_fn, Update
-from update_functions import Update, Update_Functions
 from Esteban_Ray_polarization import Esteban_Ray_polarization
-import warnings
 
 #######################################
 ## Main Simulation Class Implementation
@@ -11,19 +8,20 @@ import warnings
 MAX_TIME=200
 
 class Simulation:
-    def __init__(self, belief_vec, inf_graph, update_fun, pol_instance : Polarization_Measure=Esteban_Ray_polarization(), **kwargs):
+    def __init__(self, belief_vec, inf_graph, rat_graph, update_fun, pol_instance : Polarization_Measure=Esteban_Ray_polarization(), **kwargs):
         self.belief_vec = np.array(belief_vec)
         self.inf_graph = inf_graph
         self.update_fun = update_fun
         self.pol_instance = pol_instance
         self.kwargs=kwargs
+        self.rat_graph = rat_graph
         
     def __iter__(self):
         return self
 
     def __next__(self):
         result = (self.belief_vec, self.pol_instance.pol_measure(self.belief_vec))
-        self.belief_vec = self.update_fun(self.belief_vec, self.inf_graph,**self.kwargs)
+        self.belief_vec = self.update_fun(self.belief_vec, self.inf_graph,self.rat_graph,**self.kwargs)
         return result
 
     def run(self, max_time=100, smart_stop=True):
