@@ -5,10 +5,11 @@ from Simulation import Simulation
 import cli_utils as cli
 from belief_states import build_belief, Belief
 from influence_graphs import Influence,build_influence
+from rationality_graphs import Rationality,build_rat_graph
 import numpy as np
 import os
 
-GLOBAL_SEED = 123456
+GLOBAL_SEED = 654321
 
 # Getting influence graph and initial belief from seed:
 def get_influence(seed, num_agents, minimum_influence = 0, diagonal_value = 1):
@@ -23,6 +24,13 @@ def get_influence(seed, num_agents, minimum_influence = 0, diagonal_value = 1):
 def get_initial_belief(seed, num_agents):
     np.random.seed(seed)
     return build_belief(Belief.RANDOM, num_agents = num_agents)
+
+def get_rationality(seed, num_agents):
+    np.random.seed(seed)
+    # return build_rat_graph(Rationality.RANDOM,num_agents)
+    # return build_rat_graph(Rationality.CONSTANT,num_agents=num_agents,rationality_value=np.random.uniform(-1,1))
+    # return build_rat_graph(Rationality.PER_AGENT,num_agents=num_agents,rationality_values=np.random.uniform(-1,1,num_agents))
+    return build_rat_graph(Rationality.PER_AGENT,num_agents=num_agents,rationality_values=np.random.uniform(0,1,num_agents))
 
 #Computing the final state by using the formula, if possible:
 def nullspace(A, atol=1e-13, rtol=0):
@@ -59,12 +67,17 @@ def test_final_results_equal(
     number_of_sims = 100000, 
     nagents = 100,
     minimum_influence = 0,
-    diagonal_value = None
+    diagonal_value = 1
     ):
     if not os.path.isdir(f"./generated/{GLOBAL_SEED}_equals"):
         os.mkdir(f"./generated/{GLOBAL_SEED}_equals")
-    seedsUsed = [(np.random.randint(0, 2**32-1),np.random.randint(0, 2**32-1)) for i in range(number_of_sims)]
-    ksUsed = [np.random.rand()*2-1 for i in range(number_of_sims)]
+    
+    # Seeds for 
+    seedsUsed = [(
+        np.random.randint(0, 2**32-1),
+        np.random.randint(0, 2**32-1),
+        np.random.randint(0, 2**32-1)
+        ) for i in range(number_of_sims)]
 
     initPos = 0
     if os.path.isfile(f"./generated/{GLOBAL_SEED}_equals/{test_name}"):
@@ -88,12 +101,13 @@ def test_final_results_equal(
             minimum_influence,
             diagonal_value
             )
-        k = ksUsed[i]
-        funs = [container.get_function((key,k)) for key in keys]
+        rand_rat = get_rationality(seedsUsed[i][2],nagents)
+
+        funs = [container.get_function(key) for key in keys]
         
         final_states = []
         for fun in funs:
-            raw = Simulation(rand_bel,rand_inf,fun)
+            raw = Simulation(rand_bel,rand_inf,rand_rat,fun)
             final_states.append(raw.get_final_state(tolerance = 0))
         
         arq = open(f"./generated/{GLOBAL_SEED}_equals/{test_name}","r+")
@@ -101,13 +115,9 @@ def test_final_results_equal(
             out = False
             for l in range(j+1,len(final_states)):
                 if np.linalg.norm(final_states[j]-final_states[l]) >  1e-2:
-                    # print(final_states[j])
-                    # print(final_states[l])
-                    # print(rand_inf)
-                    # print(rand_bel)
                     print("Difference found!")
                     arq.seek(0,os.SEEK_END)
-                    arq.write(f"({k},{seedsUsed[i][0]},{seedsUsed[i][1]})\n")
+                    arq.write(f"({seedsUsed[i][0]},{seedsUsed[i][1]},{seedsUsed[i][2]})\n")
                     out = True
                     break
             if out:
@@ -141,15 +151,18 @@ def plot_differents(
     for x in cli.ProgressRange(len(lines), "running"):
         case = lines[x]
         tup = eval(case)
-        k = tup[0]
-        blf_seed = tup[1]
-        inf_seed = tup[2]
+        blf_seed = tup[0]
+        inf_seed = tup[1]
+        rat_seed = tup[2]
+
         blf = get_initial_belief(blf_seed,nagents)
         inf = get_influence(inf_seed,nagents)
-        funs = [container.get_function((key,k)) for key in keys]
+        rat = get_rationality(rat_seed,nagents)
+
+        funs = [container.get_function(key) for key in keys]
         completed_sims = []
         for fun in funs:
-            raw = Simulation(blf,inf,fun)
+            raw = Simulation(blf,inf,rat,fun)
             completed_sims.append(raw.run(max_time = max_time, smart_stop=True))
 
         for i, fin in enumerate(completed_sims):
@@ -171,8 +184,7 @@ def test_final_results_value(
 ):
     if not os.path.isdir(f"./generated/{GLOBAL_SEED}_value"):
         os.mkdir(f"./generated/{GLOBAL_SEED}_value")
-    seedsUsed = [(np.random.randint(0, 2**32-1),np.random.randint(0, 2**32-1)) for i in range(number_of_sims)]
-    ksUsed = [np.random.rand()*2-1 for i in range(number_of_sims)]
+    seedsUsed = [(np.random.randint(0, 2**32-1),np.random.randint(0, 2**32-1),np.random.randint(0, 2**32-1)) for i in range(number_of_sims)]
 
     initPos = 0
     if os.path.isfile(f"./generated/{GLOBAL_SEED}_value/{test_name}"):
@@ -195,12 +207,12 @@ def test_final_results_value(
             minimum_influence,
             diagonal_value
             )
-        k = ksUsed[i]
-        funs = [container.get_function((key,k)) for key in keys]
+        rand_rat = get_rationality(seedsUsed[i][2])
+        funs = [container.get_function(key) for key in keys]
         
         final_states = []
         for fun in funs:
-            raw = Simulation(rand_bel,rand_inf,fun)
+            raw = Simulation(rand_bel,rand_inf,rand_rat,fun)
             final_states.append(raw.get_final_state(tolerance = 0))
         
         predicted = []
@@ -209,16 +221,14 @@ def test_final_results_value(
 
         arq = open(f"./generated/{GLOBAL_SEED}_value/{test_name}","r+")
         for j in range(len(final_states)):
-            # print(f'k= {k},\n result= {final_states[j]},\n predicted = {predicted[j]}\n influence =\n {rand_inf}\n initbel = {rand_bel}')
             if predicted[j] and np.all(abs(final_states[j]-final_states[j][0]) <= 1e-5):
                 if np.linalg.norm(final_states[j] - predicted[j])>1e-3:
-                    print(f'\nDifference found!: k= {k},\n result= {final_states[j]},\n predicted = {predicted[j]}\n influence =\n {rand_inf}\n initbel = {rand_bel}')
+                    print(f'\nDifference found!: k= {rand_rat},\n result= {final_states[j]},\n predicted = {predicted[j]}\n influence =\n {rand_inf}\n initbel = {rand_bel}')
                     arq.seek(0,os.SEEK_END)
-                    arq.write(f"({k},{seedsUsed[i][0]},{seedsUsed[i][1]})\n")
+                    arq.write(f"({seedsUsed[i][0]},{seedsUsed[i][1]},{seedsUsed[i][2]})\n")
                     break
                 else:
                     correct+=1
-                    # print("Predicted correcly!")
         arq.seek(0)
         arq.write(str(initPos).zfill(6))
         arq.close()

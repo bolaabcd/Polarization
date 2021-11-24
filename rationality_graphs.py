@@ -32,15 +32,15 @@ class Rationality(Enum):
     PER_AGENT = 1
     RANDOM = 2
 
-def build_influence(
+def build_rat_graph(
         rat_type: Rationality,
         num_agents=NUM_AGENTS,
         rationality_value=None,
         rationality_values=None,
         ):
-    """Builds the initial influence graph according to the `rat_type`.
+    """Builds the initial rationality graph according to the `rat_type`.
 
-    Helper function when iterating over the `Influence` enum. The default values
+    Helper function when iterating over the `rationality` enum. The default values
     are the constants defined at the beginning of the polarization module.
     """
     if rat_type is Rationality.CONSTANT:
@@ -53,4 +53,4 @@ def build_influence(
         return build_rat_graph_per_agent(num_agents, rationality_values)
     if rat_type is Rationality.RANDOM:
         return build_inf_graph_random(num_agents)
-    raise Exception('rat_type not recognized. Expected an `Influence`')
+    raise Exception('rat_type not recognized. Expected an `rationality`')
