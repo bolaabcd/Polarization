@@ -1,3 +1,4 @@
+# This repository is archived because we have a new one https://github.com/bolaabcd/Polarization2
 # Simulations of Multi-Agent Models for polarization in society
 This github repository has python code for simulating the evolution of agent opinions in a generalization of the model presented [here](https://link.springer.com/chapter/10.1007/978-3-030-78089-0_2). At the moment, it can represent society as a graph in wich every person is represented as a node, and communication between agents is a directed edge with some "influence" weight associeted to it. Also, we only deal with discrete and syncrhonous update functions, and we model evolution of the opinion on only one proposition, represented as a value between 0 and 1.
 
